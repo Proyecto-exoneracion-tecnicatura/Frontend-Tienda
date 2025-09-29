@@ -12,9 +12,14 @@ export default function App() {
       if (!auth) return;
       setErr("");
       try {
-        const r = await apiFetch(`/api/user`);
-        if (!r.ok) throw new Error("No autorizado");
-        const u = await r.json();
+        const r = await apiFetch("/api/validate");
+        const txt = await r.text();
+        const isJson = (r.headers.get("content-type") || "").includes("application/json");
+        if (!r.ok) {
+          const data = isJson ? JSON.parse(txt) : {};
+          throw new Error(data.message || "No autorizado");
+        }
+        const u = isJson ? JSON.parse(txt) : null;
         setMe(u);
       } catch (e) {
         setErr(e.message);
