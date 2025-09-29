@@ -15,20 +15,31 @@ export default function Login({ onAuth }) {
     setErr("");
     setLoading(true);
     try {
-      const res = await fetch(`/oauth/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          grant_type: "password",
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET, // no usar en prod pública
-          username: email,
-          password,
-          scope: ""
-        })
+      const body = new URLSearchParams({
+        grant_type: "password",
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        username: email,
+        password,
+        scope: ""
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error_description || data.message || "Credenciales inválidas");
+
+      const res = await fetch("/oauth/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Accept": "application/json"
+        },
+        body
+      });
+
+      const text = await res.text();
+      const isJson = (res.headers.get("content-type") || "").includes("application/json");
+      const data = isJson ? JSON.parse(text) : { _raw: text };
+
+      if (!res.ok) {
+        throw new Error(data.error_description || data.message || "Credenciales inválidas");
+      }
 
       const token = {
         access_token: data.access_token,
@@ -52,15 +63,29 @@ export default function Login({ onAuth }) {
       {err && <p role="alert">{err}</p>}
       <label>
         Email
-        <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} autoComplete="username" required />
+        <input
+          type="email"
+          value={email}
+          onChange={(e)=>setEmail(e.target.value)}
+          autoComplete="username"
+          required
+        />
       </label>
       <br />
       <label>
         Password
-        <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="current-password" required />
+        <input
+          type="password"
+          value={password}
+          onChange={(e)=>setPassword(e.target.value)}
+          autoComplete="current-password"
+          required
+        />
       </label>
       <br />
-      <button type="submit" disabled={loading}>{loading ? "Ingresando..." : "Entrar"}</button>
+      <button type="submit" disabled={loading}>
+        {loading ? "Ingresando..." : "Entrar"}
+      </button>
     </form>
   );
 }
