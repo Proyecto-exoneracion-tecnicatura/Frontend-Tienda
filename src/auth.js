@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'auth';
+const STORAGE_KEY = "auth";
 
 export function getAuth() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -14,11 +14,13 @@ export function clearAuth() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+// Wrapper de fetch que agrega Accept: JSON y el Bearer si existe
 export async function apiFetch(input, init = {}) {
   const auth = getAuth();
   const headers = new Headers(init.headers || {});
+  headers.set("Accept", "application/json");
   if (auth?.access_token) {
-    headers.set('Authorization', `Bearer ${auth.access_token}`);
+    headers.set("Authorization", `Bearer ${auth.access_token}`);
   }
   return fetch(input, { ...init, headers });
 }
